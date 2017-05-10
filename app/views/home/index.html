@@ -26,3 +26,175 @@
 		<button id="previous">Show Previous Games</button>
 	</body>
 </html>
+
+<script type="text/javascript">
+	//globals
+	var turn = 0;
+	var currentGameId = 0;
+	var td = $('td'); //get all <td>'s
+	var winCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[0,4,8],[6,4,2]];
+
+	//get X|O and return array
+	var getBoard = function(){
+		var board = [];
+		//jQuery version (i) => board.push($(td[i]).text());
+		td.each((i) => board.push(td[i].textContent));
+		return board;
+	}
+
+	var checkWinner = function(){
+		var board = getBoard();
+		for(var i=0, k=winCombos.length; i < k; i++){
+			//3 positions in board match and is player token
+			if(board[winCombos[i][0]] === board[winCombos[i][1]] && board[winCombos[i][0]] === board[winCombos[i][2]] && board[winCombos[i][0]] === player()){
+				message(`Player ${player()} Won!`)
+				return true;
+			}
+		}
+		//no winner
+		return false;
+	}
+
+	var message = function(msg){
+		$('#message').html(msg);
+	}
+
+	var isBoardFull = function(){
+		var board = getBoard();
+		for(let i=0, k=board.length; i < k; i++){
+			if (board[i] == ""){
+				return false;
+			}
+		}
+		message('Tie Game');
+		return true;
+	}
+
+	var resetGame = function(){
+			td.html("");
+			turn = 0;
+			currentGameId = 0;
+			message(""); //clear player won message
+	}
+
+	var saveGame = function(){
+		var url, method;
+		if(currentGameId === 0){
+			//we have not saved to db yet
+			url = '/games';
+			method = 'POST'
+		}else{
+			//we just need to update games
+			url = `/games/${currentGameId}`;
+			method = 'PATCH';
+		}
+
+		//make ajax calls
+		$.ajax({
+			url: url,
+			method: method,
+			dataType: "json",
+			data: {
+				game: { state: getBoard() }
+			},
+			success: function(data){
+				currentGameId = data.game.id;
+			}
+		});
+	}
+
+	var bm = function(callback, iterations){
+		var start = Date.now();
+		for(let i=0; i < iterations; i++){
+			callback();
+		}
+		var end = Date.now();
+		console.log(`${iterations} iterations, time elapsed: ${(end-start)/1000}s`)
+	}
+
+	var doTurn = function(e){
+		updateState(e); //update game board
+		if(checkWinner() || isBoardFull()){
+			saveGame();
+			resetGame();
+		}else{
+			//increment turn counter
+			turn++;
+		}
+	}
+
+	//set player token to click target
+	var updateState = function(e){
+		return $(e.target).html(player());
+	}
+
+	var player = function(){
+		return (turn % 2 === 0) ? "X" : "O";
+	}
+
+	var generateTurnCount = function(board){
+		var counter = 0;
+		for(let i=0, k=board.length; i < k; i++){
+			if(board[i] != ""){
+				counter++;
+			}
+		}
+		return counter;
+	}
+
+	var getAllGames = function(){
+		$.getJSON('/games').done((resp) => showGames(resp.games));
+	}
+
+	var getGame = function(id){
+		return $.getJSON(`/games/${id}`).done((resp) => console.log(resp.game));
+	}
+
+	var showGames = function(games){
+		var ul = $('<ul>'); //create ul holder element
+		games.forEach((game) => {
+			ul = ul.append($('<li>', {'data-state': game.state, 'data-gameid': game.id, 'text': "Game: " + game.id }))
+		});
+		//replace #games html
+		$('#games').html(ul);
+	}
+
+	var parseState = function(e){
+		return $(e.target).data('state').split(',');
+	}
+
+	var getGameId = function(e){
+		return $(e.target).data('gameid');
+	}
+
+	var generateGame = function(state, id){
+		td.each((i) => $(td[i]).text(state[i]));
+		currentGameId = id;
+		turn = generateTurnCount(state)
+	}
+
+	var attachListeners = function(){
+		//td or tbody still need e.target as its jQuery event
+		$('tbody').click((e) => doTurn(e));
+
+		$('#previous').click((e) => getAllGames());
+
+		$('#games').click((e) => {
+			//todo
+			//we need to update data-state to current state from db
+			//as to allow us to continue playing after saving
+			//then save again, then when clicking on game id
+			//we load in teh correct game state and not old one
+			var state = parseState(e);
+			var id = getGameId(e);
+			generateGame(state,id);
+		});
+
+		$('#save').click((e) => saveGame());
+	}
+
+	$(function(){
+		attachListeners();
+	})
+
+</script>
