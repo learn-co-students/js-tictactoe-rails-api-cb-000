@@ -5,6 +5,14 @@ function attachListeners(){
 	$("td").on("click", function(){
 		doTurn(this)
 	})
+	$("#save").on("click", function(){
+		postGame()
+	})
+}
+
+function boxSelector(array){
+	var box = $(`[data-x=${array[0]}][data-y=${array[1]}]`)
+	return box.text()
 }
 
 function doTurn(box){
@@ -43,6 +51,24 @@ function checkWinner(){
 
 function message(str){
 	$("#message").append("<p>" + str + "</p>")
+}
+
+function save(){
+	var stateArray = []
+	$("td").each(function(){
+		stateArray.push($(this).text())
+	})
+	return stateArray
+}
+
+function stateJson(state){
+	return { "game": { "state": state } }
+}
+
+function postGame(){
+	var state = save();
+	var json = stateJson(state)
+	$.post("/games", json)
 }
 
 $(function(){
