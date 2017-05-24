@@ -9,6 +9,10 @@ function attachListeners(){
 	$("#save").on("click", function(){
 		postGame()
 	})
+	$("#previous").on("click", function(e){
+		e.preventDefault()
+		getGames()
+	})
 }
 
 function boxSelector(array){
@@ -64,6 +68,13 @@ function postGame(){
 	var state = save();
 	var json = stateJson(state)
 	$.post("/games", json)
+}
+
+function getGames(){
+	$.ajax({
+		url: "/games",
+		dataType: 'script'
+	})
 }
 
 $(function(){

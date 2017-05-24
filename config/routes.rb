@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   root 'home#index'
 
   post '/games' => 'games#create'
+  get '/games' => 'games#index'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
