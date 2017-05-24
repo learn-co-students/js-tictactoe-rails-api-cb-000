@@ -44,3 +44,7 @@ function checkWinner(){
 function message(str){
 	$("#message").append("<p>" + str + "</p>")
 }
+
+$(function(){
+	attachListeners();
+})
