@@ -9,9 +9,8 @@ function attachListeners(){
 	$("#save").on("click", function(){
 		postGame()
 	})
-	$("#previous").on("click", function(e){
-		e.preventDefault()
-		getGames()
+	$("#previous").on("click", function(){
+		getGames();
 	})
 }
 
@@ -66,16 +65,35 @@ function stateJson(state){
 
 function postGame(){
 	var state = save();
-	var json = stateJson(state)
-	$.post("/games", json)
+	$.ajax({
+		url: "/games",
+		data: stateJson(state),
+		method: "POST",
+		dataType: "json"
+	})
 }
 
 function getGames(){
 	$.ajax({
 		url: "/games",
 		dataType: 'script'
+	}).done(makeGameLinksWork)
+}
+
+function makeGameLinksWork(){
+	$(".saved-game").each(getGame)
+}
+
+function getGame(){
+	$(this).on("click", function(e){
+		$.get("/games/"+ $(this).data("id") + ".json", function(json){
+			$("td").each(function(index){
+				$(this).text(json.state[index])
+			})
+		})
 	})
 }
+
 
 $(function(){
 	attachListeners();
