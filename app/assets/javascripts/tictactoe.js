@@ -1,6 +1,7 @@
 var turn = 0;
 var winningCombo = [[[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]], [[0,0],[1,1],[2,2]], [[0,0],[0,1],[0,2]], [[2,0],[2,1],[2,2]], [[1,0],[1,1],[1,2]], [[2,0],[1,1],[0,2]]]
 var gameOver
+var saved
 
 function attachListeners(){
 	$("td").on("click", function(){
@@ -20,10 +21,11 @@ function boxSelector(array){
 }
 
 function doTurn(box){
-	turn += 1;
+	
 	if(gameOver){
 		resetGame()
-	}else{
+	}else if(!$(box).text()){
+		turn += 1;
 		updateState(box);
 		checkWinner();
 		checkTie()
@@ -87,12 +89,18 @@ function stateJson(state){
 
 function postGame(){
 	var state = getStateArray();
+	if(saved){
+		var method = "PATCH"
+	}else{
+		method = "POST"
+	}
 	$.ajax({
 		url: "/games",
 		data: stateJson(state),
-		method: "POST",
+		method: method,
 		dataType: "json"
 	})
+	saved = true
 }
 
 function getGames(){
