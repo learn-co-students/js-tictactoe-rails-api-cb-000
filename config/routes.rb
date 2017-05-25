@@ -7,6 +7,12 @@ Rails.application.routes.draw do
   root 'home#index'
   post '/games' => 'games#create'
 
+  post '/games' => 'games#create'
+  get '/games' => 'games#index'
+  get '/games/:id' => 'games#show'
+
+  resource :games, only: [:create, :index, :show, :update]
+
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
 

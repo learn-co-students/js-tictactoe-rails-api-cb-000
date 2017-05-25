@@ -1,5 +1,7 @@
 var turn = 0;
 var winningCombo = [[[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]], [[0,0],[1,1],[2,2]], [[0,0],[0,1],[0,2]], [[2,0],[2,1],[2,2]], [[1,0],[1,1],[1,2]], [[2,0],[1,1],[0,2]]]
+var gameOver
+var saved
 
 function attachListeners(){
 	$("td").on("click", function(){
@@ -7,6 +9,12 @@ function attachListeners(){
 	})
 	$("#save").on("click", function(){
 		postGame()
+	})
+	$("#previous").on("click", function(){
+		getGames()
+	})
+	$("#reset").on("click", function(){
+		resetGame()
 	})
 }
 
@@ -16,15 +24,14 @@ function boxSelector(array){
 }
 
 function doTurn(box){
-	turn += 1;
-	updateState(box);
-	checkWinner();
-}
-
-function doTurn(box){
-	turn += 1;
-	updateState(box);
-	checkWinner();
+	if(gameOver){
+		resetGame()
+	}else if(!$(box).text()){
+		turn += 1;
+		updateState(box);
+		checkWinner();
+		checkTie()
+	}
 }
 
 function player(){
@@ -45,15 +52,32 @@ function checkWinner(){
 		if(boxSelector(array[0]) === boxSelector(array[1]) && boxSelector(array[1]) === boxSelector(array[2]) && boxSelector(array[0]) != ""){
 			var messageStr = "Player " + boxSelector(array[0]) + " Won!"
 			message(messageStr);
+			gameOver = true
 		}
 	})
 }
 
-function message(str){
-	$("#message").append("<p>" + str + "</p>")
+function checkTie(){
+	var stateArray = getStateArray();
+	if(!stateArray.includes("") && !gameOver){
+		message("Tie!");
+		gameOver = true
+	}
 }
 
-function save(){
+function resetGame(){
+	$("td").each(function(){
+		$(this).text("")
+	})
+	gameOver = false;
+	message("")
+}
+
+function message(str){
+	$("#message").html("<p>" + str + "</p>")
+}
+
+function getStateArray(){
 	var stateArray = []
 	$("td").each(function(){
 		stateArray.push($(this).text())
@@ -66,9 +90,40 @@ function stateJson(state){
 }
 
 function postGame(){
-	var state = save();
-	var json = stateJson(state)
-	$.post("/games", json)
+	var state = getStateArray();
+	if(saved){
+		var method = "PATCH"
+	}else{
+		method = "POST"
+	}
+	$.ajax({
+		url: "/games",
+		data: stateJson(state),
+		method: method,
+		dataType: "json"
+	})
+	saved = true
+}
+
+function getGames(){
+	$.ajax({
+		url: "/games",
+		dataType: 'script'
+	}).done(makeGameLinksWork)
+}
+
+function makeGameLinksWork(){
+	$(".saved-game").each(getGame)
+}
+
+function getGame(){
+	$(this).on("click", function(e){
+		$.get("/games/"+ $(this).data("id") + ".json", function(json){
+			$("td").each(function(index){
+				$(this).text(json.state[index])
+			})
+		})
+	})
 }
 
 $(function(){
