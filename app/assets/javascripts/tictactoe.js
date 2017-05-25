@@ -21,9 +21,13 @@ function boxSelector(array){
 
 function doTurn(box){
 	turn += 1;
-	updateState(box);
-	checkWinner();
-	checkTie()
+	if(gameOver){
+		resetGame()
+	}else{
+		updateState(box);
+		checkWinner();
+		checkTie()
+	}
 }
 
 function player(){
@@ -57,8 +61,16 @@ function checkTie(){
 	}
 }
 
+function resetGame(){
+	$("td").each(function(){
+		$(this).text("")
+	})
+	gameOver = false;
+	message("")
+}
+
 function message(str){
-	$("#message").append("<p>" + str + "</p>")
+	$("#message").html("<p>" + str + "</p>")
 }
 
 function getStateArray(){
@@ -74,7 +86,7 @@ function stateJson(state){
 }
 
 function postGame(){
-	var state = stateArray();
+	var state = getStateArray();
 	$.ajax({
 		url: "/games",
 		data: stateJson(state),
