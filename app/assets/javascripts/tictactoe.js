@@ -11,7 +11,10 @@ function attachListeners(){
 		postGame()
 	})
 	$("#previous").on("click", function(){
-		getGames();
+		getGames()
+	})
+	$("#reset").on("click", function(){
+		resetGame()
 	})
 }
 
