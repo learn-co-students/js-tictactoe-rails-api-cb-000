@@ -70,6 +70,7 @@ function resetGame(){
 		$(this).text("")
 	})
 	gameOver = false;
+	saved = false;
 	message("")
 }
 
