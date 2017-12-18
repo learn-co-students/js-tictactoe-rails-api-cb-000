@@ -10,12 +10,23 @@ $(document).ready(function(){
 
 
   var turn = 0;
+  var board = [];
   function player(){
     if (turn % 2 === 0){
       return "X";
     }else{
       return "O";
     }
+  }
+
+  function removeListeners(){
+    var spaces = document.getElementsByTagName('td');
+     for(let i = 0; i < 9; i++){
+       spaces[i].removeEventListener("click", function(e){
+
+       });
+     }
+
   }
 function attachListeners(){
   let board = getBoard();
@@ -69,7 +80,7 @@ function attachListeners(){
 }
 
 function loadGame(game){
-  console.log(game);
+
   let savedGame = $.get(`/games/${game}`, JSON.parse(game));
   savedGame.done(function(response){
   fillBoard(response.data.attributes.state);
@@ -77,7 +88,7 @@ function loadGame(game){
 }
 
 function fillBoard(game = ["","","","","","","","",""]){
-  console.log(game);
+
      let td = document.getElementsByTagName('td');
       for(let i = 0; i < 9; i++){
         if(game[i] === undefined){
@@ -93,7 +104,10 @@ function doTurn(clickedSpace){
   turn++;
   updateState(clickedSpace);
   if(checkWinner() === true){
-    fillBoard();
+   setMessage()
+    removeListeners();
+     board = ["","","","","","","","",""];
+    fillBoard(board);
     turn = 0;
   }
 }
@@ -110,7 +124,7 @@ function doTurn(clickedSpace){
   function checkWinner(){
     let board = getBoard();
 
-console.log(board);
+
 
     let winner = false;
     const WIN_COMBINATIONS =  [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -138,6 +152,12 @@ console.log(board);
   });
    if(winner){
      setMessage(`Player ${player()} Won!`);
+   }else if(!winner && !getBoard().includes("")) {
+     removeListeners();
+     setMessage("Tie game.")
+     board = ["","","","","","","","",""];
+    fillBoard(board);
+    turn = 0;
    }
     return winner;
 
@@ -147,8 +167,8 @@ console.log(board);
     var board = [];
      var tdTags = document.getElementsByTagName('td');
      for(let i = 0; i < 9; i++){
-       if(tdTags[i].innerText !== ""){
-         board.push(tdTags[i].innerText);
+       if(tdTags[i].innerHTML !== ""){
+         board.push(tdTags[i].innerHTML);
        }else{
          board.push("");
        }
