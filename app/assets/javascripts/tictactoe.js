@@ -30,29 +30,41 @@ $(document).ready(function(){
   }
 function attachListeners(){
   let board = getBoard();
+    
   var saveBtn = document.getElementById('save');
     saveBtn.addEventListener("click", function(event){
         let gameBoard = `{"state": "${board}"}`
-        let savedGame = $.post('/games', JSON.parse(gameBoard));
+        let method;
+        
+        //request patch if game already exists, otherwise post.
+        
+        $.ajax({
+            method: 'PATCH',
+            url: '/games',
+            data: JSON.parse(gameBoard)
+        })
+         .done(function(res){
+            console.log(res);
+        })
+        
+        
+        
+        /*let savedGame = $.post('/games', JSON.parse(gameBoard));
         savedGame.done(function(response){
           console.log(response);
-        });
+        });*/
     })
   var previousBtn = document.getElementById('previous');
     previousBtn.addEventListener("click", function(event){
-       fetch('/games')
-       .then(res => res.json())
-       .then(games => {
-         let gamesDiv = document.getElementById('games');
-           games.data.forEach(function(g){
+        
+        $.get('/games', function(games){
+            let gamesDiv = document.getElementById('games');
+            games.data.forEach(function(g){
              gamesDiv.innerHTML += `<button onclick="loadGame(${g.id})" >Game :${g.id} </button>`
-           })
-
-
-
-       });
-
-    })
+});
+            });
+        
+    });
   var clearBtn = document.getElementById('clear');
    clearBtn.addEventListener("click", function(event){
      alert("clicked")
@@ -101,7 +113,7 @@ function fillBoard(game = ["","","","","","","","",""]){
 }
 
 function doTurn(clickedSpace){
-  turn++;
+  
   updateState(clickedSpace);
   if(checkWinner() === true){
    setMessage()
@@ -109,6 +121,8 @@ function doTurn(clickedSpace){
      board = ["","","","","","","","",""];
     fillBoard(board);
     turn = 0;
+  }else{
+      turn++;
   }
 }
   function updateState(position){
@@ -151,6 +165,7 @@ function doTurn(clickedSpace){
 
   });
    if(winner){
+       console.log(player());
      setMessage(`Player ${player()} Won!`);
    }else if(!winner && !getBoard().includes("")) {
      removeListeners();
