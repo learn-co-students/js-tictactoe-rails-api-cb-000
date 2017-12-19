@@ -11,6 +11,7 @@ $(document).ready(function(){
 
   var turn = 0;
   var board = [];
+  var currentGame = '';
   function player(){
     if (turn % 2 === 0){
       return "X";
@@ -29,51 +30,37 @@ $(document).ready(function(){
 
   }
 function attachListeners(){
-  let board = getBoard();
-    
+
+  //console.log(board);
   var saveBtn = document.getElementById('save');
-    saveBtn.addEventListener("click", function(event){
-        let gameBoard = `{"state": "${board}"}`
-        let method;
-        
-        //request patch if game already exists, otherwise post.
-        
-        $.ajax({
-            method: 'PATCH',
-            url: '/games',
-            data: JSON.parse(gameBoard)
-        })
-         .done(function(res){
-            console.log(res);
-        })
-        
-        
-        
-        /*let savedGame = $.post('/games', JSON.parse(gameBoard));
-        savedGame.done(function(response){
-          console.log(response);
-        });*/
-    })
+  saveBtn.addEventListener("click", function(event){
+         let gameBoard = `{"state": "${board}"}`
+         let savedGame = $.post('/games', JSON.parse(gameBoard));
+         savedGame.done(function(response){
+           console.log(response);
+         });
+     });
   var previousBtn = document.getElementById('previous');
     previousBtn.addEventListener("click", function(event){
-        
+
         $.get('/games', function(games){
             let gamesDiv = document.getElementById('games');
             games.data.forEach(function(g){
              gamesDiv.innerHTML += `<button onclick="loadGame(${g.id})" >Game :${g.id} </button>`
 });
             });
-        
+
     });
   var clearBtn = document.getElementById('clear');
    clearBtn.addEventListener("click", function(event){
-     alert("clicked")
+
       let board = [" "," "," "," "," "," "," "," "," "];
-      let gameBoard = `{"state": "${board}"}`
-      let saveGame = $.post('/games', JSON.parse(gameBoard));
+    //  let gameBoard = `{"state": "${board}"}`
+      /*let saveGame = $.post('/games', JSON.parse(gameBoard));
       saveGame.done(function(response){
         fillBoard(response.data.attributes.state);
-      });
+      });*/
+      fillBoard();
    });
 
    var spaces = document.getElementsByTagName('td');
@@ -91,11 +78,14 @@ function attachListeners(){
 
 }
 
+
 function loadGame(game){
 
   let savedGame = $.get(`/games/${game}`, JSON.parse(game));
   savedGame.done(function(response){
+    currentGame = response.data.id;
   fillBoard(response.data.attributes.state);
+
   });
 }
 
@@ -113,7 +103,7 @@ function fillBoard(game = ["","","","","","","","",""]){
 }
 
 function doTurn(clickedSpace){
-  
+//console.log(currentGame);
   updateState(clickedSpace);
   if(checkWinner() === true){
    setMessage()
@@ -165,7 +155,6 @@ function doTurn(clickedSpace){
 
   });
    if(winner){
-       console.log(player());
      setMessage(`Player ${player()} Won!`);
    }else if(!winner && !getBoard().includes("")) {
      removeListeners();
@@ -182,6 +171,7 @@ function doTurn(clickedSpace){
     var board = [];
      var tdTags = document.getElementsByTagName('td');
      for(let i = 0; i < 9; i++){
+      // console.log(tdTags[i]);
        if(tdTags[i].innerHTML !== ""){
          board.push(tdTags[i].innerHTML);
        }else{

@@ -11,8 +11,9 @@ class GamesController < ApplicationController
   end
 
   def create
-    
+    binding.pry
     game = Game.create(game_params)
+    binding.pry
     render json: game, status: 201
   end
 
@@ -22,10 +23,9 @@ class GamesController < ApplicationController
   end
 
   private
-
   def game_params
-    params.permit(state: [])
-  end
+      params.permit(state: [])
+    end
 
   def set_game
     @game = Game.find(params[:id])
