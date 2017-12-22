@@ -34,11 +34,23 @@ function attachListeners(){
   //console.log(board);
   var saveBtn = document.getElementById('save');
   saveBtn.addEventListener("click", function(event){
-         let gameBoard = `{"state": "${board}"}`
-         let savedGame = $.post('/games', JSON.parse(gameBoard));
-         savedGame.done(function(response){
-           console.log(response);
-         });
+         let gameBoard = {state: getBoard()};  //just make the object here
+
+         if(currentGame){
+           let savedGame = $.ajax({
+             method: 'patch',
+             url: `/games/${currentGame}`
+           }).done(function(response){
+             console.log(response);
+           })
+         }else{
+           let savedGame = $.post('/games', gameBoard);
+            savedGame.done(function(response){
+
+              currentGame = response.data.id;
+            });
+         }
+
      });
   var previousBtn = document.getElementById('previous');
     previousBtn.addEventListener("click", function(event){
@@ -54,7 +66,7 @@ function attachListeners(){
   var clearBtn = document.getElementById('clear');
    clearBtn.addEventListener("click", function(event){
 
-      let board = [" "," "," "," "," "," "," "," "," "];
+      let board = ["","","","","","","","",""];
     //  let gameBoard = `{"state": "${board}"}`
       /*let saveGame = $.post('/games', JSON.parse(gameBoard));
       saveGame.done(function(response){
@@ -89,12 +101,12 @@ function loadGame(game){
   });
 }
 
-function fillBoard(game = ["","","","","","","","",""]){
+function fillBoard(game = blankBoard()){
 
      let td = document.getElementsByTagName('td');
       for(let i = 0; i < 9; i++){
         if(game[i] === undefined){
-          td[i].innerHTML = "";
+          td[i].innerHTML = " ";
         }else{
           td[i].innerHTML = game[i];
 
@@ -105,10 +117,10 @@ function fillBoard(game = ["","","","","","","","",""]){
 function doTurn(clickedSpace){
 //console.log(currentGame);
   updateState(clickedSpace);
-  if(checkWinner() === true){
-   setMessage()
+  if(checkWinner()){
+
     removeListeners();
-     board = ["","","","","","","","",""];
+     board = blankBoard();
     fillBoard(board);
     turn = 0;
   }else{
@@ -121,6 +133,7 @@ function doTurn(clickedSpace){
   }
 
   function setMessage(message){
+    console.log("set message run: " + message);
     let messageElement = document.getElementById('message');
     messageElement.innerHTML = message;
   }
@@ -149,20 +162,20 @@ function doTurn(clickedSpace){
 
         }
 
-
-
-
-
   });
    if(winner){
+
      setMessage(`Player ${player()} Won!`);
    }else if(!winner && !getBoard().includes("")) {
+     console.log("tie");
      removeListeners();
      setMessage("Tie game.")
-     board = ["","","","","","","","",""];
+     board = blankBoard();
     fillBoard(board);
     turn = 0;
    }
+
+
     return winner;
 
   }
@@ -181,3 +194,7 @@ function doTurn(clickedSpace){
 
      return board;
   }
+
+function blankBoard(){
+  return ["","","","","","","","",""];
+}
