@@ -7,18 +7,24 @@ class GamesController < ApplicationController
   end
 
   def show
+
+    @game = Game.find(params[:id])
+  #  binding.pry
     render json: @game
   end
 
   def create
-    binding.pry
-    game = Game.create(game_params)
-    binding.pry
-    render json: game, status: 201
+
+    @game = Game.create(game_params)
+binding.pry
+    render json: @game, status: 201
   end
 
   def update
+    binding.pry
+    @game = Game.find(params[:id])
     @game.update(game_params)
+
     render json: @game
   end
 
