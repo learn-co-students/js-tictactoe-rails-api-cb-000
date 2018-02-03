@@ -30,7 +30,7 @@ $(window).on('load', function() {
 function attachListeners() {
   // Square clicks
   $('td').on('click', function() {
-    doTurn(this)
+    if (!checkWinner()) doTurn(this);
   });
 
   // Previous button click
@@ -38,10 +38,12 @@ function attachListeners() {
     showPrevious();
   });
 
+  // Save button click
   $('#save').on('click', function() {
     saveGame();
   });
 
+  // Clear button click
   $('#clear').on('click', function() {
     resetBoard();
   });
@@ -75,35 +77,17 @@ function checkWinner() {
   return false;
 }
 
-// Duplicate of above method. Needed to get around spy test expecting checkWinner() to be called once
-function checkAnotherWinner() {
-  let board = $.map(window.squares, val => val.innerHTML);
-
-  for (let i = 0; i < winningCombos.length; i++) {
-    let pos_one = winningCombos[i][0];
-    let pos_two = winningCombos[i][1];
-    let pos_three = winningCombos[i][2];
-
-    if (board[pos_one] && board[pos_one] === board[pos_two] && board[pos_two] === board[pos_three]) {
-      setMessage(`Player ${board[pos_one]} Won!`);
-      return true;
-    }
-  }
-  return false;
-}
-
 function doTurn(clicked) {
-  if(!squareTaken(clicked) && !checkWinner()) {
+  if (!squareTaken(clicked)) {
     updateState(clicked);
     turn++
-    checkDraw()
-    if(checkAnotherWinner()) gameWon();
   }
-}
-
-function gameWon() {
-  saveGame();
-  resetBoard();
+  if (checkWinner()) {
+    saveGame();
+    resetBoard();
+  } else {
+    checkDraw();
+  }
 }
 
 function player() {
