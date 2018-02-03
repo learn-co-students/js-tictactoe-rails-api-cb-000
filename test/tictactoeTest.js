@@ -586,7 +586,7 @@ describe('AJAX interactions with the Rails API', () => {
 
       window.turn = 8;
       window.doTurn(squares[7]);
-
+      
       expect(requests[0].method).to.equal('POST');
       expect(requests[0].url).to.equal('/games');
     });
