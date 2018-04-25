@@ -1,12 +1,11 @@
 // Code your JavaScript / jQuery solution here
 
-const WINING_COMBINATIONS = [
+// global variables
+var WINING_COMBINATIONS = [
   [0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]
 ];
-
-// global variables
 var turn = 0
-var state = Array.from(Array(9).keys());
+var gameId = null;
 
 document.addEventListener("DOMContentLoaded", function(){
   attachListeners();
@@ -24,44 +23,12 @@ function resetBoard(){
   let squares = document.querySelectorAll('td');
   for(let i = 0; i < squares.length; i++){
     squares[i].textContent = '';
-    squares[i].addEventListener('click', doTurn);
+    squares[i].addEventListener('click', clickHandler);
   }
 }
 
-function resetState(){
-  state = Array.from(Array(9).keys());
-  turn = 0;
-}
-
-function mapXYToIndex(x,y){
-  let index;
-  // return index
-  if(x == 0){
-    if(y == 0){
-      index = 0;
-    } else if(y == 1){
-      index = 3;
-    } else if(y == 2){
-      index = 6;
-    }
-  } else if(x == 1) {
-    if(y == 0){
-      index = 1;
-    } else if(y == 1){
-      index = 4;
-    } else if(y == 2){
-      index = 7;
-    }
-  } else if(x == 2){
-    if(y == 0){
-      index = 2;
-    } else if(y == 1){
-      index = 5;
-    } else if(y == 2){
-      index = 8;
-    }
-  }
-  return index;
+function clickHandler(e){
+  doTurn(e.target);
 }
 
 // returns the appropriate player token, 'X' when 'turn' even, 'O' when odd
@@ -69,41 +36,35 @@ function player(){
   return (turn % 2 == 0)? 'X' : 'O';
 }
 
-// takes elm that was clicked, calls player(), adds 'X'/'O' to approriate square
 function updateState(elm){
-  let x = elm.dataset.x;
-  let y = elm.dataset.y;
-  let token = player();
-  let index = mapXYToIndex(x,y);
-
-  // update board
-  let square = document.querySelector('td[data-x="' + x + '"][data-y="' + y + '"]');
-  square.textContent = token
-  square.removeEventListener('click', doTurn);
-
-  // update state array
-  state[index] = token;
+  elm.textContent = player();
+  elm.removeEventListener('click', clickHandler);
 }
 
-
-// accepts str, adds to 'div#message' elm
 function setMessage(str){
   document.getElementById('message').textContent = str
 }
 
-function playerMoves() {
-  let token = player();
-  return state.reduce(function(arr, elm, i){
+function currentState(){
+  let array = [];
+  document.querySelectorAll('td').forEach(function(elm){
+    array.push(elm.textContent);
+  });
+  return array;
+}
+
+function playerMoves(token) {
+  return currentState().reduce(function(arr, elm, i){
     return (elm === token)? arr.concat(i) : arr;
   }, []);
 }
 
-function winningCombination(playerMoves) {
+function winningCombination(moves) {
   let i = 0;
   while (i < WINING_COMBINATIONS.length) {
     combination = WINING_COMBINATIONS[i];
     match = combination.every(function(val){
-      return playerMoves.includes(val)
+      return moves.includes(val)
     })
     if (match) return true;
     i++;
@@ -113,68 +74,140 @@ function winningCombination(playerMoves) {
 
 // return the squares that do not have a token
 function emptySquares(){
-  return state.filter(function(square){
-    return typeof square === 'number';
-  })
-}
-
-function removeListeners(){
-  let empties = emptySquares();
-  let squares = document.querySelectorAll('td');
-  empties.forEach(function(val){
-    squares[val].removeEventListener('click', doTurn);
-  })
+  let array = [];
+  currentState().forEach(function(val, i){
+    if(val === '') array.push(i);
+  });
+  return array;
 }
 
 // returns true if the board has a winning combination, returns false otherwise. calls setMessage()
 function checkWinner(){
-  let moves = playerMoves();
-  let result = winningCombination(moves)
+  let xmoves = playerMoves('X');
+  let result = winningCombination(xmoves)
   if(result) {
-    let str = "Player " + player() + " Won!";
-    setMessage(str);
-    removeListeners();
+    setMessage('Player X Won!');
+  } else {
+    let omoves = playerMoves('O');
+    result = winningCombination(omoves);
+    if(result){
+      setMessage('Player O Won!');
+    }
   }
   return result;
 }
 
 function checkDraw(){
   if(emptySquares().length == 0) {
-    setMessage('Game a Draw!');
+    setMessage('Tie game.');
+    saveGame();
     return true;
   }
   return false;
 }
 
-function doTurn(e){
-  turn++;
-  // updateState, passing elm that was clicked
-  updateState(e.target);
-  if(!checkWinner() && !checkDraw()) computerTurn();
+function checkGameOver(){
+  return (checkWinner() || checkDraw());
 }
 
-function computerTurn(){
-  turn++;
-  let squares = document.querySelectorAll('td');
-  let squareIndex = emptySquares()[0]; //retrieve the first empty square
-  updateState(squares[squareIndex]);
-  if(!checkWinner()) checkDraw();
+function doTurn(elm){
+  if(elm.textContent === ''){
+    updateState(elm);
+    turn++;
+    if(checkGameOver()) {
+      saveGame();
+      resetGame();
+    }
+  }
 }
 
 function resetGame(){
+  console.log('reset game');
   resetBoard();
-  resetState();
+  turn = 0;
+  gameId = null;
+}
+
+
+// AJAX methods /////////////////////////////////////////////////////////
+
+function populateBoard(arr) {
+  for (let i = 0; i < 9; i++) {
+    squares[i].innerHTML = arr[i];
+  }
+}
+
+function loadGames(response){
+  console.log(response);
+
+  // populate list and insert in div#games
+} 
+
+function loadGame(response){
+  console.log(response);
+
+  // set gameId
+  // populate board
+}
+
+function loadState(response){
+  console.log('loading state');
+  if(turn > 0) gameId = response.data.id;
+  alert('Game successfully saved.');
+}
+
+function saveGameState(){
+  $.ajax({
+    type: 'POST',
+    url: '/games',
+    data: { state: currentState() },
+    success: loadState,
+    error: function(){alert('Error saving game.')}
+  });
+}
+
+function updateGameState(){
+  $.ajax({
+    type: 'PATCH',
+    url: `/games/${gameId}`,
+    data: { state: currentState() },
+    success: loadState,
+    error: function(){ alert('Error updating game.')}
+  });
 }
 
 function saveGame(){
-  setMessage('save game');
+  // update the state for a previously saved game
+  if(gameId) updateGameState();
+  
+  // save game state -> ajax POST => game#create
+  else saveGameState();
 }
 
 function previousGame(){
-  setMessage('previous game');
+  // fetch games -> ajax GET => game#index
+  $.get({
+    url: '/games',
+    dataType: 'json',
+    // callback -> display game list
+    success: loadGames,
+    error: function(){ alert('Error retrieving games from server.'); }
+  });
+}
+
+function fetchGame(){
+  // fetch game upon item click -> ajax GET => game#show
+  $.get({
+    url: `/game/${gameId}`,
+    dataType: 'json',
+    // callback -> populate board & set turn value
+    success: loadGame,
+    error: function(){ alert('Error retrieving game from server.') }
+  });
 }
 
 function clearGame(){
+  // clear board and start new game
   setMessage('');
   resetGame();
 }
