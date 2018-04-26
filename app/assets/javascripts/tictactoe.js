@@ -1,13 +1,23 @@
 $(document).ready(attachListeners)
 
 var turn = 0
+var board = function () {
+  clearGame()
+  return createBoardArray()
+}
+var id = 0
 
 function player() {
   return ((turn % 2 === 0) ? "X":"O")
 }
 
-function updateState() {
-  $(this).text(player())
+function updateState(square) {
+  if($(square).text() == ""){
+    $(square).text(player())
+    return true
+  } else {
+    return false
+  }
 }
 
 function setMessage(message) {
@@ -35,14 +45,26 @@ function checkWinner() {
   return result
 }
 
-function doTurn() {
+function doTurn(square) {
+  square = this
   // checkWinner(), updateState(), increments turn, saves completed games
-  updateState.bind(this)()
+  // updateState(square)
+  var approvedMove = updateState(square)
   var result = checkWinner()
-  if(turn >= 8){
+  if (turn >= 8){
     setMessage("Tie game.")
   }
-  turn ++
+  if(result || turn> 8){
+    saveGame()
+    clearGame()
+    board = createBoardArray()
+    turn = 0
+  } else {
+    if(approvedMove) {
+      turn ++
+    }
+  }
+
 }
 
 function attachListeners() {
@@ -50,42 +72,77 @@ function attachListeners() {
   $("#save").on("click", saveGame)
   $("#previous").on("click", previousGame)
   $("#clear").on("click", clearGame)
-  $("js-game").on("click", loadGame)
 }
 
-function saveGame(e){
-  e.preventDefault
-  //checks to see if current game is saved. If not, it saves it.
-  alert("saving game")
+function saveGame(){
+  if(id === 0) {
+    var posting = $.post("/games", JSON.stringify(board))
+    posting.done(function(game){
+      id = game["data"]["id"]
+    })
+  } else {
+    $.post("/games/" + id, {_method: "PATCH", state: JSON.stringify(board) })
+  }
 }
 
 function previousGame(e){
-  $.get('/games', function(resp){
-    //adds buttons of previous games to the DOM
-    //each button should be able to send a get request to "/games/:id"
-    alert("looking for games")
+  $.get('/games').done(function(data) {
+    var i = $("#games > button").length
+    for(i; i < data["data"].length; i++) {
+      var id = data["data"][i]["id"]
+      $("#games").append('<button class="js-game" id="'+ id +'">' + id + '</button>')
+    }
+    $(".js-game").on("click", loadGame)
   })
 }
 
-function clearGame(e) {
-  alert("clearing board")
+function clearGame() {
+  var squares = $("td")
+  for(var i = 0; i < squares.length; i++ ){
+    squares[i].innerHTML = ""
+    }
+  id = 0
 }
 
 //game buttons as js-game
 function loadGame(){
-  let id = $(this).data("id")
-  alert(`looking for ${id}`)
+  var id = $(this).attr("id")
+  $.get("/games/"+ id).done(function(data){
+    id = data["data"]["id"]
+    board = data["data"]["attributes"]["state"]
+    createBoard()
+    turn = setTurn()
+  })
 }
 
 
 function createBoardArray() {
-  let count = 0
-  let board = []
-  for(let y = 0; y < 3; y++ ){
-    for(let x = 0; x < 3; x++){
+  var count = 0
+  var board = []
+  for(var y = 0; y < 3; y++ ){
+    for(var x = 0; x < 3; x++){
       board[count] = $(`[data-x="${x}"][data-y="${y}"]`).text()
       count ++
     }
   }
   return board
+}
+
+function createBoard() {
+  var squares = $("td")
+  for(var i = 0; i < squares.length; i++ ){
+    squares[i].innerHTML = board[i]
+    }
+  id = 0
+}
+
+function setTurn() {
+  var squares = $("td")
+  var count = 0
+  for(var i = 0; i < 9; i++) {
+    if(squares[i].innerHTML != "") {
+      count++
+    }
+  }
+  return count
 }
