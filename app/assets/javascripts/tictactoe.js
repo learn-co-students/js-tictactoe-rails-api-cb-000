@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 function attachListeners(){
   document.getElementById('save').addEventListener('click', saveGame);
-  document.getElementById('previous').addEventListener('click', previousGame);
+  document.getElementById('previous').addEventListener('click', fetchGames);
   document.getElementById('clear').addEventListener('click', clearGame);
   resetBoard();
 }
@@ -47,14 +47,14 @@ function setMessage(str){
 
 function currentState(){
   let array = [];
-  document.querySelectorAll('td').forEach(function(elm){
+  document.querySelectorAll('td').forEach((elm)=>{
     array.push(elm.textContent);
   });
   return array;
 }
 
 function playerMoves(token) {
-  return currentState().reduce(function(arr, elm, i){
+  return currentState().reduce((arr, elm, i)=>{
     return (elm === token)? arr.concat(i) : arr;
   }, []);
 }
@@ -63,7 +63,7 @@ function winningCombination(moves) {
   let i = 0;
   while (i < WINING_COMBINATIONS.length) {
     combination = WINING_COMBINATIONS[i];
-    match = combination.every(function(val){
+    match = combination.every((val)=>{
       return moves.includes(val)
     })
     if (match) return true;
@@ -75,7 +75,7 @@ function winningCombination(moves) {
 // return the squares that do not have a token
 function emptySquares(){
   let array = [];
-  currentState().forEach(function(val, i){
+  currentState().forEach((val, i)=>{
     if(val === '') array.push(i);
   });
   return array;
@@ -122,7 +122,6 @@ function doTurn(elm){
 }
 
 function resetGame(){
-  console.log('reset game');
   resetBoard();
   turn = 0;
   gameId = null;
@@ -131,39 +130,53 @@ function resetGame(){
 
 // AJAX methods /////////////////////////////////////////////////////////
 
+function removeListeners(){
+  document.querySelectorAll('td').forEach((elm)=>{
+    if(elm.textContent === '') elm.removeEventListener('click', clickHandler);
+  });
+}
+
 function populateBoard(arr) {
+  let squares = document.querySelectorAll('td');
   for (let i = 0; i < 9; i++) {
     squares[i].innerHTML = arr[i];
   }
 }
 
 function loadGames(response){
-  console.log(response);
-
   // populate list and insert in div#games
-} 
+  let games = document.getElementById('games');
+  games.innerHTML = '';
+  // let container = document.createElement('ul');
+  if(response.data.length > 0){
+    response.data.forEach((game)=>{
+      let elm = document.createElement('button');
+      let content = document.createTextNode(game.id);
+      elm.appendChild(content);
+      elm.addEventListener('click', fetchGame, false);
+      games.append(elm);
+    });
+  }
+}
 
 function loadGame(response){
-  console.log(response);
-
-  // set gameId
-  // populate board
+  // reset state - board, gameId & turn
+  setMessage('');
+  resetBoard();
+  gameId = response.data.id
+  let board = response.data.attributes.state;
+  populateBoard(board);
+  turn = 9 - emptySquares().length;
+  if(checkWinner()) removeListeners();
+  else if(!checkDraw()) setMessage('Game incomplete!');
 }
 
 function loadState(response){
-  console.log('loading state');
-  if(turn > 0) gameId = response.data.id;
-  alert('Game successfully saved.');
+  gameId = response.data.id;
 }
 
 function saveGameState(){
-  $.ajax({
-    type: 'POST',
-    url: '/games',
-    data: { state: currentState() },
-    success: loadState,
-    error: function(){alert('Error saving game.')}
-  });
+  $.post('/games', { state: currentState()}, loadState);
 }
 
 function updateGameState(){
@@ -171,39 +184,24 @@ function updateGameState(){
     type: 'PATCH',
     url: `/games/${gameId}`,
     data: { state: currentState() },
-    success: loadState,
-    error: function(){ alert('Error updating game.')}
+    success: loadState
   });
 }
 
 function saveGame(){
   // update the state for a previously saved game
   if(gameId) updateGameState();
-  
+
   // save game state -> ajax POST => game#create
   else saveGameState();
 }
 
-function previousGame(){
-  // fetch games -> ajax GET => game#index
-  $.get({
-    url: '/games',
-    dataType: 'json',
-    // callback -> display game list
-    success: loadGames,
-    error: function(){ alert('Error retrieving games from server.'); }
-  });
+function fetchGames(){
+  $.get('/games', loadGames);
 }
 
-function fetchGame(){
-  // fetch game upon item click -> ajax GET => game#show
-  $.get({
-    url: `/game/${gameId}`,
-    dataType: 'json',
-    // callback -> populate board & set turn value
-    success: loadGame,
-    error: function(){ alert('Error retrieving game from server.') }
-  });
+function fetchGame(event){
+  $.get(`/games/${event.target.textContent}`, loadGame);
 }
 
 function clearGame(){
