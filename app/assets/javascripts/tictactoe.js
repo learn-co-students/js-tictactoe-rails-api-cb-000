@@ -38,7 +38,7 @@ function checkWinner() {
   board = createBoardArray()
   result =  wins.some(function (combo) {
     if(board[combo[0]] === board[combo[1]] && board[combo[1]] === board[combo[2]] && board[combo[0]] != ""){
-      setMessage(`Player ${player()} Won!`)
+        setMessage(`Player ${board[combo[0]]} Won!`)
       return true;
     }
   })
@@ -46,29 +46,30 @@ function checkWinner() {
 }
 
 function doTurn(square) {
-  square = this
-  // checkWinner(), updateState(), increments turn, saves completed games
-  // updateState(square)
-  var approvedMove = updateState(square)
-  var result = checkWinner()
-  if (turn >= 8){
-    setMessage("Tie game.")
-  }
-  if(result || turn> 8){
-    saveGame()
-    clearGame()
-    board = createBoardArray()
-    turn = 0
-  } else {
-    if(approvedMove) {
-      turn ++
+    var approvedMove = updateState(square)
+    var result = checkWinner()
+    if (turn >= 8){
+      setMessage("Tie game.")
     }
-  }
-
+    if(result || turn >= 8){
+      // set a timer
+      saveGame()
+      clearGame()
+      board = createBoardArray()
+      turn = 0
+      $("#message").text("")
+    } else {
+      if(approvedMove) {
+        turn ++
+      }
+    }
 }
 
 function attachListeners() {
-  $("td").on("click", doTurn)
+  $("td").on("click", function(event) {
+    // this is only necessary due to how the tests are written.  I think it looks ugly.
+    doTurn(event.target)
+  })
   $("#save").on("click", saveGame)
   $("#previous").on("click", previousGame)
   $("#clear").on("click", clearGame)
@@ -76,12 +77,22 @@ function attachListeners() {
 
 function saveGame(){
   if(id === 0) {
-    var posting = $.post("/games", JSON.stringify(board))
-    posting.done(function(game){
-      id = game["data"]["id"]
+    $.ajax({
+      type: "POST",
+      url: "/games",
+      data: {state: JSON.stringify(board)},
+      dataType: "json",
+      success: function(game){
+        id = game["data"]["id"]
+      }
     })
   } else {
-    $.post("/games/" + id, {_method: "PATCH", state: JSON.stringify(board) })
+    $.ajax({
+      type: "POST",
+      url: "/games/" + id,
+      data: { _method: "PATCH", state: JSON.stringify(board)},
+      dataType: "json"
+    })
   }
 }
 
@@ -102,6 +113,7 @@ function clearGame() {
     squares[i].innerHTML = ""
     }
   id = 0
+  turn = 0
 }
 
 //game buttons as js-game
@@ -111,7 +123,10 @@ function loadGame(){
     id = data["data"]["id"]
     board = data["data"]["attributes"]["state"]
     createBoard()
-    turn = setTurn()
+    setTurn()
+    if(checkWinner() || turn >= 8){
+      $("td").off("click")
+    }
   })
 }
 
@@ -144,5 +159,5 @@ function setTurn() {
       count++
     }
   }
-  return count
+  turn = count
 }
