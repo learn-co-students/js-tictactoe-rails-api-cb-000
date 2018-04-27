@@ -1,11 +1,17 @@
-$(document).ready(attachListeners)
+$(document).ready(function() {
+  attachListeners()
+  setTurn()
+  if(checkWinner() || turn >= 8){
+    $("td").off("click")
+  }
+})
 
-var turn = 0
+var turn
 var board = function () {
   clearGame()
   return createBoardArray()
 }
-var id = 0
+var id
 
 function player() {
   return ((turn % 2 === 0) ? "X":"O")
@@ -57,6 +63,7 @@ function doTurn(square) {
       clearGame()
       board = createBoardArray()
       turn = 0
+      id = 0
       $("#message").text("")
     } else {
       if(approvedMove) {
@@ -88,15 +95,15 @@ function saveGame(){
     })
   } else {
     $.ajax({
-      type: "POST",
+      type: "PATCH",
       url: "/games/" + id,
-      data: { _method: "PATCH", state: JSON.stringify(board)},
+      data: {state: JSON.stringify(board)},
       dataType: "json"
     })
   }
 }
 
-function previousGame(e){
+function previousGame(){
   $.get('/games').done(function(data) {
     var i = $("#games > button").length
     for(i; i < data["data"].length; i++) {
@@ -116,11 +123,9 @@ function clearGame() {
   turn = 0
 }
 
-//game buttons as js-game
 function loadGame(){
-  var id = $(this).attr("id")
+   id = $(this).attr("id")
   $.get("/games/"+ id).done(function(data){
-    id = data["data"]["id"]
     board = data["data"]["attributes"]["state"]
     createBoard()
     setTurn()
@@ -148,7 +153,6 @@ function createBoard() {
   for(var i = 0; i < squares.length; i++ ){
     squares[i].innerHTML = board[i]
     }
-  id = 0
 }
 
 function setTurn() {
