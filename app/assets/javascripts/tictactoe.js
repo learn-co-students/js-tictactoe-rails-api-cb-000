@@ -19,11 +19,7 @@ $(function(){
   };
 
   function updateState() {
-
-
-
-     let won = comb[0] === comb[1] && comb[0] === comb[2]
-
+    $(this).html(`${player()}`)
   };
 
   function setMessage(string) {
@@ -55,11 +51,65 @@ $(function(){
 
 
   function doTurn() {
-
+    turn += 1;
+    updateState();
+    checkWinner();
   };
 
   function attachListeners() {
+    $(document).ready(function() {
+      // Save Game
+      $("#save").click(function() {
+        saveGame();
+      });
+      // Previous Games
+      $("#previous").click(function() {
+        previousGames();
+      });
+      // Clear Game
+      $("#clear").click(function() {
+        clearGame();
+      });
+    });
+  };
 
+  function saveGame() {
+    //  if click 1 -> save (even if blank)
+    // if click 2 -> update (even if blank)
+    // if click 3,4,etc -> update (even if blank)
+    game = {state: board}
+    var posting = $.post('/posts', values);
+
+      posting.done(function(data) {
+        var post = data;
+        $("#postTitle").text(post["title"]);
+        $("#postBody").text(post["description"]);
+      });
+  };
+
+  function clearGame() {
+    // creates new game and displays it
+    turn = 0;
+    $("td").html("");
+    <!--
+    //var posting = $.post('/games');
+    //posting.done(function(data) {
+    //  e = data;
+    //});
+    -->
+  };
+
+
+
+  function previousGames() {
+    $.get("/games", function(data) {
+      var games = "<ul>";
+      data["data"].forEach(function(game) {
+        games += "<li>" + game["id"] + "</li>";
+      });
+      games += "</ul>";
+      $('#games').html(games);
+    });
   };
 
 

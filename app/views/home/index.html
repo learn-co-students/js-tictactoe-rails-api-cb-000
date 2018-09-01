@@ -16,10 +16,27 @@
 	</tr>
 </table>
 
-<div id="games"></div>
-
 <div id="message"></div>
 
 <button id="save">Save Game</button>
 <button id="previous">Show Previous Games</button>
 <button id="clear">Clear Current Game</button>
+
+<div id="games"></div>
+
+
+<script type="text/javascript" charset="utf-8">
+	$(function() {
+		// Previous
+		$("#previous").click(function() {
+			$.get("/games", function(data) {
+				var games = "<ul>";
+				data["data"].forEach(function(game) {
+					games += "<li>" + game["id"] + "</li>"
+				});
+				games += "</ul>";
+				$('#games').html(games)
+			});
+		});
+	});
+</script>
