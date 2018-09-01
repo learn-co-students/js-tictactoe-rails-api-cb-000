@@ -1,14 +1,14 @@
 var turn  = 0;
 
 const win_combinations = [
-  [0,1,2],
-  [3,4,5],
-  [6,7,8],
-  [0,3,6],
-  [1,4,7],
-  [2,5,8],
-  [0,4,8],
-  [6,4,2]
+  [[0,0],[1,0],[2,0]],
+  [[0,1],[1,1],[2,1]],
+  [[0,2],[1,2],[2,2]],
+  [[0,0],[0,1],[0,2]],
+  [[1,0],[1,1],[1,2]],
+  [[2,0],[2,1],[2,2]],
+  [[0,0],[1,1],[2,2]],
+  [[0,2],[1,1],[2,0]]
 ]
 
 function player() {
@@ -17,7 +17,11 @@ function player() {
 }
 
 function updateState(element) {
+  if ($(element).html() !== "") {
+    return false;
+  }
   $(element).html(`${player()}`);
+  return true;
 }
 
 function setMessage(string) {
@@ -28,9 +32,9 @@ function checkWinner() {
   let winner;
 
   win_combinations.forEach(function (comb) {
-    let val_1 = $(`[data-n='${comb[0]}']`).html();
-    let val_2 = $(`[data-n='${comb[1]}']`).html();
-    let val_3 = $(`[data-n='${comb[2]}']`).html();
+    let val_1 = $(`[data-x='${comb[0][0]}'][data-y='${comb[0][1]}']`).html();
+    let val_2 = $(`[data-x='${comb[1][0]}'][data-y='${comb[1][1]}']`).html();
+    let val_3 = $(`[data-x='${comb[2][0]}'][data-y='${comb[2][1]}']`).html();
 
     if ( val_1 !== "" && val_1 === val_2 && val_1 === val_3 ) {
       winner = val_1;
@@ -49,9 +53,22 @@ function checkWinner() {
 
 
 function doTurn(element) {
+  let updated = updateState(element);
+  if (!updated) {
+    return;
+  }
+  if (checkWinner()) {
+    saveGame();
+    clearGame();
+    return;
+  }
   turn += 1;
-  updateState(element);
-  checkWinner();
+  if (turn === 9) {
+    saveGame();
+    setMessage('Tie game.');
+    clearGame();
+    return;
+  }
 }
 
 function attachListeners() {
