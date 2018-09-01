@@ -97,9 +97,6 @@ function attachListeners() {
 }
 
 function saveGame() {
-  //  if click 1 -> save (even if blank)
-  // if click 2 -> update (even if blank)
-  // if click 3,4,etc -> update (even if blank)
   let tds = $("td");
   let board = [];
   tds.each(function() {
@@ -128,14 +125,9 @@ function saveGame() {
 }
 
 function clearGame() {
-  // creates new game and displays it
   game_id = false;
   turn = 0;
   $("td").html("");
-  //var posting = $.post('/games');
-  //posting.done(function(data) {
-  //  e = data;
-  //});
 }
 
 function previousGames() {
