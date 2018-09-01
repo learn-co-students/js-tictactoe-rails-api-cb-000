@@ -1,18 +1,18 @@
-<table id="board" border="1" cellpadding="40">
+<table border="1" cellpadding="40">
 	<tr>
 		<td data-n="0" data-x="0" data-y="0"></td>
 		<td data-n="1" data-x="1" data-y="0"></td>
-		<td data-n="2" data-x="2" data-y="0">O</td>
+		<td data-n="2" data-x="2" data-y="0"></td>
 	</tr>
 	<tr>
 		<td data-n="3" data-x="0" data-y="1"></td>
 		<td data-n="4" data-x="1" data-y="1"></td>
-		<td data-n="5" data-x="2" data-y="1">O</td>
+		<td data-n="5" data-x="2" data-y="1"></td>
 	</tr>
 	<tr>
 		<td data-n="6" data-x="0" data-y="2"></td>
 		<td data-n="7" data-x="1" data-y="2"></td>
-		<td data-n="8" data-x="2" data-y="2">O</td>
+		<td data-n="8" data-x="2" data-y="2"></td>
 	</tr>
 </table>
 
@@ -23,20 +23,3 @@
 <button id="clear">Clear Current Game</button>
 
 <div id="games"></div>
-
-
-<script type="text/javascript" charset="utf-8">
-	$(function() {
-		// Previous
-		$("#previous").click(function() {
-			$.get("/games", function(data) {
-				var games = "<ul>";
-				data["data"].forEach(function(game) {
-					games += "<li>" + game["id"] + "</li>"
-				});
-				games += "</ul>";
-				$('#games').html(games)
-			});
-		});
-	});
-</script>
