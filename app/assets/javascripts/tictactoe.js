@@ -1,4 +1,5 @@
 var turn  = 0;
+var game_id = false;
 
 const win_combinations = [
   [[0,0],[1,0],[2,0]],
@@ -84,6 +85,11 @@ function attachListeners() {
   $("#previous").click(function() {
     previousGames();
   });
+  // Load Game
+  $('div#games').on('click', $("button"), function(e) {
+    let data_id = $(e.target).attr("data-id");
+    loadGame(data_id);
+  });
   // Clear Game
   $("#clear").click(function() {
     clearGame();
@@ -94,21 +100,36 @@ function saveGame() {
   //  if click 1 -> save (even if blank)
   // if click 2 -> update (even if blank)
   // if click 3,4,etc -> update (even if blank)
-  let elements = $("td");
+  let tds = $("td");
   let board = [];
-  elements.each(function() {
+  tds.each(function() {
     let val = $(this).html();
     board.push(val);
   });
-  game = {state: board}
-  var posting = $.post('/games', game);
-    posting.done(function(data) {
-      setMessage("Save Successful!");
-    });
+  if (game_id) {
+    game = {id: game_id, state: board}
+    $.ajax({
+      url: `/games/${game_id}`,
+      data: game,
+      dataType: "json",
+      method: "PATCH"
+    })
+    .success(function(resp) {
+      setMessage("Update Successful!");
+    })
+  } else {
+    game = {state: board}
+    var posting = $.post('/games', game);
+      posting.done(function(resp) {
+        game_id = resp["data"]["id"]
+        setMessage("Initial Save Successful!");
+      });
+  }
 }
 
 function clearGame() {
   // creates new game and displays it
+  game_id = false;
   turn = 0;
   $("td").html("");
   //var posting = $.post('/games');
@@ -119,12 +140,26 @@ function clearGame() {
 
 function previousGames() {
   $.get("/games", function(data) {
-    var games = "<ul>";
+    var games = "<br><h3>Previous Games</h3>";
     data.data.forEach(function(game) {
-      games += "<li>" + game.id + "</li>";
+      games += `<button data-id="${game.id}">Game ${game.id}</button><br>`;
     });
-    games += "</ul>";
     $('#games').html(games);
+  });
+}
+
+function loadGame(id) {
+  $.get(`/games/${id}`, function(resp) {
+    var state = resp["data"]["attributes"]["state"]
+    game_id = parseInt(resp["data"]["id"])
+    setBoard(state);
+  });
+}
+
+function setBoard(state) {
+  var tds = $("td")
+  tds.each(function() {
+    $(this).html(state.shift());
   });
 }
 
