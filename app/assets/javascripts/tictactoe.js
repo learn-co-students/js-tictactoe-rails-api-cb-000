@@ -139,19 +139,22 @@ function clearGame() {
 }
 
 function previousGames() {
-  $.get("/games", function(data) {
-    var games = "<br><h3>Previous Games</h3>";
-    data.data.forEach(function(game) {
-      games += `<button data-id="${game.id}">Game ${game.id}</button><br>`;
-    });
-    $('#games').html(games);
+  $.get("/games", function(resp) {
+    if (resp.data.length !== 0) {
+      var games = "<br><h3>Previous Games</h3>";
+      resp.data.forEach(function(game) {
+        games += `<button data-id="${game.id}">Game ${game.id}</button><br>`;
+      });
+      $('#games').html(games);
+    }
   });
 }
 
 function loadGame(id) {
   $.get(`/games/${id}`, function(resp) {
-    var state = resp["data"]["attributes"]["state"]
     game_id = parseInt(resp["data"]["id"])
+    var state = resp["data"]["attributes"]["state"]
+    turn = state.filter(pos => pos !== "").length
     setBoard(state);
   });
 }
