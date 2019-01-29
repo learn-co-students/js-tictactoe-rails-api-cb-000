@@ -1,4 +1,4 @@
-let turn = 0;
+var turn = 0;
 let gameId = 0;
 const WINNING_COMBINATIONS = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
 
@@ -7,13 +7,11 @@ $(function() {
 });
 
 function player(){
-  if (turn%2 === 0) {return "X"} else {return "O"};
+  if (turn % 2 === 0) {return "X"} else {return "O"};
 }
 
 function updateState(square){
-  if ($(square).html() === ""){
-    $(square).html(player());
-  };
+  $(square).html(player());
 }
 
 function setMessage(message) {
@@ -34,22 +32,29 @@ function checkWinner() {
 }
 
 function doTurn(square){
-  updateState(square);
-  turn++;
-  if (checkWinner()){
-    $('td').text('');
-    turn = 0;
-  } else if (turn === 9) {
-    setMessage('Tie game.');
+  if (square.innerHTML === "") {
+    updateState(square);
+    turn++;
+    if (checkWinner()){
+      save();
+      clear();
+    } else if (turn > 8) {
+      setMessage('Tie game.');
+      save();
+      clear();
+    }
   }
 }
 
 function attachListeners(){
   $("td").click(function(){
-    doTurn(this);
+    if (!checkWinner()){
+      doTurn(this);
+    }
   });
   $('#save').click(save);
   $('#previous').click(previous);
+  $('#clear').click(clear);
 }
 
 function save() {
@@ -57,9 +62,7 @@ function save() {
   $('td').text((index, square) => {
     state.push(square);
   });
-  if (turn === 9){
-    // do not save
-  } else if (gameId) {
+  if (gameId) {
     $.ajax({
       type: 'PATCH',
       url: `/games/${gameId}`,
@@ -92,7 +95,15 @@ function loadSave(){
     $.each($('td'), function(index, square){
       square.innerHTML = state[index]
     })
-
+    turn = state.join("").length;
+    gameId = id;
   })
   $('#games').empty();
+  setMessage("");
+}
+
+function clear() {
+  $("td").html("");
+  turn = 0;
+  gameId = 0;
 }
