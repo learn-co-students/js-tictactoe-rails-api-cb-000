@@ -203,7 +203,6 @@ describe('tictactoe.js', () => {
       expect(window.turn).to.equal(0);
 
       window.doTurn(squares[0]);
-
       expect(window.turn).to.equal(1);
     });
 
@@ -322,7 +321,7 @@ describe('Gameplay', () => {
     squares[4].click();
 
     expect(squares[4].innerHTML).to.equal('');
-    expect(window.turn).to.equal(5);
+    expect(window.turn).to.equal(0);
   });
 
   it('Users can play multiple games', () => {
