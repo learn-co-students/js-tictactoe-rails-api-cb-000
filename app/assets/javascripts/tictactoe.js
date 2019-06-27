@@ -35,6 +35,10 @@ function setBoard(boardArray) {
 
 function saveGame() {
   console.log("I am saveGame!");
+  if (currentGameId === "") {
+    let  =
+  }
+
 }
 
 function previousGames() {
