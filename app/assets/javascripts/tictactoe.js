@@ -16,8 +16,8 @@ function saveGame() {
   console.log("I am saveGame!");
 }
 
-function previousGame() {
-  console.log("I am previousGame!");
+function previousGames() {
+  console.log("I am previousGames!");
 }
 
 function clearGame() {
@@ -62,6 +62,15 @@ function doTurn(cell) {
 function attachListeners() {
   $("td").on("click", function(event) {
     doTurn(event.target);
+  });
+  $("#save").on("click", function(event) {
+    saveGame();
+  });
+  $("#previous").on("click", function(event) {
+    previousGames();
+  });
+  $("#clear").on("click", function(event) {
+    clearGame();
   });
 }
 
