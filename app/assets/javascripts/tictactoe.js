@@ -1,16 +1,16 @@
 // Code your JavaScript / jQuery solution here
 const WIN_COMBINATIONS = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [6, 4, 2]
+  [[0,0], [1,0], [2,0]],
+  [[0,1], [1,1], [2,1]],
+  [[0,2], [1,2], [2,2]],
+  [[0,0], [0,1], [0,2]],
+  [[1,0], [1,1], [1,2]],
+  [[2,0], [2,1], [2,2]],
+  [[0,0], [1,1], [2,2]],
+  [[0,2], [1,1], [2,0]]
 ]
 
-var turn = 0;
+let turn = 0;
 
 function saveGame() {
   console.log("I am saveGame!");
@@ -28,8 +28,8 @@ function player() {
   return ((turn % 2 === 0) ? "X" : "O");
 }
 
-function updateState(box) {
-  $(box).text(player());
+function updateState(cell) {
+  $(cell).text(player());
 }
 
 function setMessage(msg) {
@@ -37,15 +37,34 @@ function setMessage(msg) {
 }
 
 function checkWinner() {
-
+  let winner = "";
+  WIN_COMBINATIONS.forEach(function(row) {
+    const boxText1 = $(`[data-x=${row[0][0]}][data-y=${row[0][1]}]`).text();
+    const boxText2 = $(`[data-x=${row[1][0]}][data-y=${row[1][1]}]`).text();
+    const boxText3 = $(`[data-x=${row[2][0]}][data-y=${row[2][1]}]`).text();
+    if (boxText1 === boxText2 && boxText2 === boxText3 && boxText3 !== "") {
+      winner = boxText1;
+    }
+  });
+  if (winner !== "") {
+    setMessage(`Player ${winner} Won!`);
+    return true;
+  }
+  return false;
 }
 
-function doTurn() {
+function doTurn(cell) {
   turn++;
-  updateState(this);  //element that has been clicked!
+  updateState(cell);  //element that has been clicked!
   checkWinner();
 }
 
 function attachListeners() {
-
+  $("td").on("click", function(event) {
+    doTurn(event.target);
+  });
 }
+
+$(document).ready(function() {
+  attachListeners();
+});
