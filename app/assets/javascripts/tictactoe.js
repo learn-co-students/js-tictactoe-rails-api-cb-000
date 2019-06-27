@@ -14,11 +14,23 @@ let turn = 0;
 let currentGameId = "";
 
 function serializeBoard() {
-
+  let boardState = [];
+  for (let y = 0; y < 3; y++) {
+    for (let x = 0; x < 3; x++) {
+      boardState.push($(`[data-x=${x}][data-y=${y}]`).text());
+    }
+  }
+  return boardState;
 }
 
 function setBoard(boardArray) {
-
+  let index = 0;
+  for (let y = 0; y < 3; y++) {
+    for (let x = 0; x < 3; x++) {
+      $(`[data-x=${x}][data-y=${y}]`).text(boardArray[index]);
+      index++;
+    }
+  }
 }
 
 function saveGame() {
@@ -30,7 +42,6 @@ function previousGames() {
 }
 
 function clearGame() {
-  console.log("I am clearGame!");
   setBoard(["", "", "", "", "", "", "", "", ""]);
   currentGameId = "";
 }
