@@ -11,6 +11,15 @@ const WIN_COMBINATIONS = [
 ]
 
 let turn = 0;
+let currentGameId = "";
+
+function serializeBoard() {
+
+}
+
+function setBoard(boardArray) {
+
+}
 
 function saveGame() {
   console.log("I am saveGame!");
@@ -22,6 +31,8 @@ function previousGames() {
 
 function clearGame() {
   console.log("I am clearGame!");
+  setBoard(["", "", "", "", "", "", "", "", ""]);
+  currentGameId = "";
 }
 
 function player() {
