@@ -10,7 +10,7 @@ const WIN_COMBINATIONS = [
   [[0,2], [1,1], [2,0]]
 ]
 
-let turn = 0;
+var turn = 0;
 let currentGameId = "";
 
 function serializeBoard() {
@@ -37,6 +37,12 @@ function loadGame(id) {
   $.get('/games/' + id, function(data) {
     console.log(data);
     setBoard(data["data"]["attributes"]["state"]);
+    turn = 0;
+    for(let i = 0; i < 9; i++) {
+      if (data["data"]["attributes"]["state"][i] !== "") {
+        turn++;
+      }
+    }
     currentGameId = id;
   });
 }
@@ -63,19 +69,21 @@ function saveGame() {
 function previousGames() {
   console.log("I am previousGames!");
   $.get('/games', function(data) {
-    let gameList = "<ul>";
+    let gameList = "";
     console.log(data);
     data["data"].forEach(function(game) {
-      gameList += `<li>Game ID: ${game["id"]} - <button onclick=\"loadGame(${game["id"]})\">Load Game</button></li>`;
+      gameList += `<button onclick=\"loadGame(${game["id"]})\">Load Game ${game["id"]}</button>`;
     });
-    gameList += "</ul>";
-    $("#games").html(gameList);
+    if (data["data"].length > 0) {
+        $("#games").html(gameList);
+    }
   });
 }
 
 function clearGame() {
   setBoard(["", "", "", "", "", "", "", "", ""]);
   currentGameId = "";
+  turn = 0;
 }
 
 function player() {
@@ -83,7 +91,11 @@ function player() {
 }
 
 function updateState(cell) {
-  $(cell).text(player());
+  if ($(cell).text() === "") {
+      $(cell).text(player());
+      return true;
+  }
+  return false;
 }
 
 function setMessage(msg) {
@@ -108,9 +120,26 @@ function checkWinner() {
 }
 
 function doTurn(cell) {
+  let winner = checkWinner();
+  if (winner === true) {
+    return;
+  }
+  if (updateState(cell) === false) {
+    return;
+  }
+  winner = checkWinner();
+  if (winner === false && turn === 8) {
+    setMessage("Tie game.");
+    saveGame();
+    clearGame();
+    return;
+  }
+  if (winner === true) {
+    saveGame();
+    clearGame();
+    return;
+  }
   turn++;
-  updateState(cell);  //element that has been clicked!
-  checkWinner();
 }
 
 function attachListeners() {
