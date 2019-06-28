@@ -36,9 +36,21 @@ function setBoard(boardArray) {
 function saveGame() {
   console.log("I am saveGame!");
   if (currentGameId === "") {
-    let  =
-  }
+    let saving = $.post('/games', {state: serializeBoard()});
+    saving.done(function(data) {
+      currentGameId = data["id"];
+      console.log(`Saved the game with ID: ${currentGameId}`);
+    });
 
+  } else {
+    $.ajax({
+       type: 'PATCH',
+       url: `/games/${currentGameId}`,
+       data: {state: serializeBoard()},
+    }).done(function(data) {
+      console.log(`Updated the game with ID: ${currentGameId}`);
+    });
+  }
 }
 
 function previousGames() {
