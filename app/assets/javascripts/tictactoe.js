@@ -1,15 +1,8 @@
-// Code your JavaScript / jQuery solution here
 const WIN_COMBINATIONS = [
-  [[0,0], [1,0], [2,0]],
-  [[0,1], [1,1], [2,1]],
-  [[0,2], [1,2], [2,2]],
-  [[0,0], [0,1], [0,2]],
-  [[1,0], [1,1], [1,2]],
-  [[2,0], [2,1], [2,2]],
-  [[0,0], [1,1], [2,2]],
-  [[0,2], [1,1], [2,0]]
+  [[0,0], [1,0], [2,0]], [[0,1], [1,1], [2,1]],[[0,2], [1,2], [2,2]],
+  [[0,0], [0,1], [0,2]],[[1,0], [1,1], [1,2]],[[2,0], [2,1], [2,2]],
+  [[0,0], [1,1], [2,2]],[[0,2], [1,1], [2,0]]
 ]
-
 var turn = 0;
 let currentGameId = "";
 
@@ -35,7 +28,6 @@ function setBoard(boardArray) {
 
 function loadGame(id) {
   $.get('/games/' + id, function(data) {
-    console.log(data);
     setBoard(data["data"]["attributes"]["state"]);
     turn = 0;
     for(let i = 0; i < 9; i++) {
@@ -48,29 +40,23 @@ function loadGame(id) {
 }
 
 function saveGame() {
-  console.log("I am saveGame!");
   if (currentGameId === "") {
     let saving = $.post('/games', {state: serializeBoard()});
     saving.done(function(data) {
       currentGameId = data["data"]["id"];
-      console.log(`Saved the game with ID: ${currentGameId}`);
     });
   } else {
     $.ajax({
        type: 'PATCH',
        url: `/games/${currentGameId}`,
        data: {state: serializeBoard()},
-    }).done(function(data) {
-      console.log(`Updated the game with ID: ${currentGameId}`);
     });
   }
 }
 
 function previousGames() {
-  console.log("I am previousGames!");
   $.get('/games', function(data) {
     let gameList = "";
-    console.log(data);
     data["data"].forEach(function(game) {
       gameList += `<button onclick=\"loadGame(${game["id"]})\">Load Game ${game["id"]}</button>`;
     });
@@ -91,11 +77,7 @@ function player() {
 }
 
 function updateState(cell) {
-  if ($(cell).text() === "") {
-      $(cell).text(player());
-      return true;
-  }
-  return false;
+  $(cell).text(player());
 }
 
 function setMessage(msg) {
@@ -120,9 +102,7 @@ function checkWinner() {
 }
 
 function doTurn(cell) {
-  if (updateState(cell) === false) {
-    return;
-  }
+  updateState(cell);
   let winner = checkWinner();
   if (winner === false && turn === 8) {
     setMessage("Tie game.");
@@ -144,15 +124,9 @@ function attachListeners() {
         doTurn(this);
     }
   });
-  $("#save").on("click", function() {
-    saveGame();
-  });
-  $("#previous").on("click", function() {
-    previousGames();
-  });
-  $("#clear").on("click", function() {
-    clearGame();
-  });
+  $("#save").on("click", () => saveGame());
+  $("#previous").on("click", () => previousGames());
+  $("#clear").on("click", () => clearGame());
 }
 
 $(document).ready(function() {
