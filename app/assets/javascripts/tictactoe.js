@@ -35,7 +35,9 @@ function setBoard(boardArray) {
 
 function loadGame(id) {
   $.get('/games/' + id, function(data) {
-
+    console.log(data);
+    setBoard(data["data"]["attributes"]["state"]);
+    currentGameId = id;
   });
 }
 
@@ -67,7 +69,7 @@ function previousGames() {
       gameList += `<li>Game ID: ${game["id"]} - <button onclick=\"loadGame(${game["id"]})\">Load Game</button></li>`;
     });
     gameList += "</ul>";
-    $("#games").innerHTML = gameList;
+    $("#games").html(gameList);
   });
 }
 
