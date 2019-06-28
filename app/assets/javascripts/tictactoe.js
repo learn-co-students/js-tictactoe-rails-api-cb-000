@@ -33,15 +33,20 @@ function setBoard(boardArray) {
   }
 }
 
+function loadGame(id) {
+  $.get('/games/' + id, function(data) {
+
+  });
+}
+
 function saveGame() {
   console.log("I am saveGame!");
   if (currentGameId === "") {
     let saving = $.post('/games', {state: serializeBoard()});
     saving.done(function(data) {
-      currentGameId = data["id"];
+      currentGameId = data["data"]["id"];
       console.log(`Saved the game with ID: ${currentGameId}`);
     });
-
   } else {
     $.ajax({
        type: 'PATCH',
@@ -55,6 +60,15 @@ function saveGame() {
 
 function previousGames() {
   console.log("I am previousGames!");
+  $.get('/games', function(data) {
+    let gameList = "<ul>";
+    console.log(data);
+    data["data"].forEach(function(game) {
+      gameList += `<li>Game ID: ${game["id"]} - <button onclick=\"loadGame(${game["id"]})\">Load Game</button></li>`;
+    });
+    gameList += "</ul>";
+    $("#games").innerHTML = gameList;
+  });
 }
 
 function clearGame() {
