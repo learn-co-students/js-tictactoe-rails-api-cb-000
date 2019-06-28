@@ -120,14 +120,10 @@ function checkWinner() {
 }
 
 function doTurn(cell) {
-  let winner = checkWinner();
-  if (winner === true) {
-    return;
-  }
   if (updateState(cell) === false) {
     return;
   }
-  winner = checkWinner();
+  let winner = checkWinner();
   if (winner === false && turn === 8) {
     setMessage("Tie game.");
     saveGame();
