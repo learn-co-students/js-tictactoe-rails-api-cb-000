@@ -322,7 +322,7 @@ describe('Gameplay', () => {
     squares[4].click();
 
     expect(squares[4].innerHTML).to.equal('');
-    expect(window.turn).to.equal(0); // This test is erroneous. It clashes with a number of other tests and requirements!
+    expect(window.turn).to.equal(5);
   });
 
   it('Users can play multiple games', () => {

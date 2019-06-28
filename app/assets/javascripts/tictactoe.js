@@ -139,16 +139,18 @@ function doTurn(cell) {
 }
 
 function attachListeners() {
-  $("td").on("click", function(event) {
-    doTurn(event.target);
+  $("td").on("click", function() {
+    if (!$.text(this) && !checkWinner()) {
+        doTurn(this);
+    }
   });
-  $("#save").on("click", function(event) {
+  $("#save").on("click", function() {
     saveGame();
   });
-  $("#previous").on("click", function(event) {
+  $("#previous").on("click", function() {
     previousGames();
   });
-  $("#clear").on("click", function(event) {
+  $("#clear").on("click", function() {
     clearGame();
   });
 }
